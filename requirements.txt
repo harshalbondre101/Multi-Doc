@@ -5,6 +5,7 @@ python-docx
 scikit-learn
 streamlit
 sumy
+extract-msg==0.29.1
 textract
 transformers
 
