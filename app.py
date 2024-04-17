@@ -10,21 +10,23 @@ from topic_modeling_module import model_topics
 from clustering_module import cluster_data
 from summarization_module import *
 
+
 # Function to read text from PDF, DOC, and TXT files
-def read_text(file_path):
-    if file_path.endswith(".pdf"):
-        with pdfplumber.open(file_path) as pdf:
+def read_text(file_content, file_extension):
+    if file_extension == ".pdf":
+        with pdfplumber.open(io.BytesIO(file_content)) as pdf:
             text = ""
             for page in pdf.pages:
                 text += page.extract_text()
         return text
-    elif file_path.endswith((".doc", ".docx")):
-        text = read_docx(file_path)
+    elif file_extension == ".docx":
+        text = read_docx(io.BytesIO(file_content))
         return text
-    elif file_path.endswith(".txt"):
-        with open(file_path, "r") as file:
-            text = file.read()
+    elif file_extension == ".txt":
+        text = file_content.decode("utf-8")
         return text
+    else:
+        return None
     
 # Function to read text from DOCX files
 def read_docx(file_path):
