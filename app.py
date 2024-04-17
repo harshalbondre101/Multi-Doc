@@ -1,6 +1,5 @@
 import streamlit as st
 import pdfplumber
-import textract
 import os
 import io
 from docx import Document
@@ -20,13 +19,21 @@ def read_text(file_path):
                 text += page.extract_text()
         return text
     elif file_path.endswith((".doc", ".docx")):
-        text = textract.process(file_path).decode("utf-8")
+        text = read_docx(file_path)
         return text
     elif file_path.endswith(".txt"):
         with open(file_path, "r") as file:
             text = file.read()
         return text
     
+# Function to read text from DOCX files
+def read_docx(file_path):
+    doc = Document(file_path)
+    full_text = []
+    for para in doc.paragraphs:
+        full_text.append(para.text)
+    return '\n'.join(full_text)
+
 # Function to dynamically calculate threshold
 def calculate_threshold(data):
     total_docs = len(data)
@@ -45,16 +52,6 @@ def get_file_extension(file_name):
     _, extension = os.path.splitext(file_name)
     return extension
 
-# Function to read text from DOCX files
-def read_docx(file_path):
-    doc = Document(file_path)
-    full_text = []
-    for para in doc.paragraphs:
-        full_text.append(para.text)
-    return '\n'.join(full_text)
-
-
-
 # Function to upload and process documents
 def main():
     st.title("Document Summarization App")
@@ -67,17 +64,7 @@ def main():
             file_content = file.read()
             file_extension = os.path.splitext(file.name)[1]
 
-            if file_extension == ".pdf":
-                with pdfplumber.open(io.BytesIO(file_content)) as pdf:
-                    text = ""
-                    for page in pdf.pages:
-                        text += page.extract_text()
-            elif file_extension == ".docx":
-                text = read_docx(io.BytesIO(file_content))  # Using python-docx for .docx files
-            elif file_extension == ".doc":
-                text = read_docx(file)  # Using python-docx for .doc files
-            else:  # For .txt files
-                text = file_content.decode("utf-8")
+            text = read_text(io.BytesIO(file_content))
 
             #---------------------CLEANING----------------#
             cleaned_data = clean_data([text])
@@ -120,4 +107,3 @@ def main():
 # Run the app
 if __name__ == '__main__':
     main()
-
